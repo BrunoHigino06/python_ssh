@@ -1,23 +1,21 @@
+#Pre requirements
+#pip install paramiko
+
 from paramiko import SSHClient
 import os
 
 # Open a SSH Connection
-client = SSHClient()
-client.load_system_host_keys()
-client.connect('example.com', username='user', password='secret')
+with open("servers.txt") as servers:
+    for server in servers:
+        client = SSHClient()
+        client.load_system_host_keys()
+        client.connect(server, username='', password='')
 
-#redhat/CentOs/AmazonLinux
-try:
-    os.system('sudo yum install -y https://s3.amazonaws.com/ec2-downloads-windows/SSMAgent/latest/linux_amd64/amazon-ssm-agent.rpm')
-    os.system('sudo systemctl status amazon-ssm-agent')
-except Exception as e:
-    #Debian
-    try:
-        os.system('wget https://s3.amazonaws.com/ec2-downloads-windows/SSMAgent/latest/debian_amd64/amazon-ssm-agent.deb')
-        os.system('sudo dpkg -i amazon-ssm-agent.deb')
-        os.system('sudo systemctl status amazon-ssm-agent')
-    except Exception as e:
-        pass
+        #Install ssm agent on Ubuntu
+        client.exec_command('sudo snap switch --channel=candidate amazon-ssm-agent')
+        client.exec_command('sudo snap install amazon-ssm-agent --classic')
+        client.exec_command('sudo snap start amazon-ssm-agent')
 
-#Close the ssh connection
-client.close()
+
+        #Close the ssh connection
+        client.close()
